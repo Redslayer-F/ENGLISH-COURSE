@@ -3,56 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>English Course Tasks</title>
+<title>English Course Portal</title>
 <style>
-body{font-family:Arial;margin:0;background:#f4f6f8}
-header{background:#2c3e50;color:white;padding:15px;text-align:center}
-.container{padding:20px}
-.card{background:white;padding:20px;margin-bottom:15px;border-radius:10px}
-button{padding:10px 15px;border:none;border-radius:6px;background:#3498db;color:white;cursor:pointer}
-button:hover{background:#2980b9}
-input,select,textarea{padding:8px;margin-top:5px;margin-bottom:10px;width:100%}
+body{font-family:Arial;margin:0;background:#eef2f7}
+header{background:#1f2a44;color:white;padding:18px;text-align:center}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:white;padding:20px;margin-bottom:20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+button{padding:10px 16px;border:none;border-radius:6px;background:#2e7df6;color:white;font-size:14px;cursor:pointer}
+button:hover{background:#1d5fd1}
+input,textarea,select{width:100%;padding:8px;margin-top:6px;margin-bottom:12px}
+.correct{color:green;font-weight:bold}
+.wrong{color:red;font-weight:bold}
 .hidden{display:none}
-.correct{color:green}
-.wrong{color:red}
 </style>
 </head>
 <body>
+
 <header>
-<h2>English Practice Portal</h2>
+<h2>English Homework Platform</h2>
 </header>
 
 <div class="container">
 
+<!-- LOGIN -->
 <div id="login" class="card">
-<h3>Select User</h3>
+<h3>Select your user</h3>
 <select id="userSelect">
 <option>Jonathan Rodríguez</option>
 <option>Uzziel García</option>
 <option>Admin</option>
 </select>
 
-<div id="adminPass" class="hidden">
-<label>Password</label>
+<div id="adminPassword" class="hidden">
+<label>Admin password</label>
 <input type="password" id="password">
 </div>
 
-<button onclick="login()">Enter</button>
+<button onclick="loginUser()">Enter</button>
 <p id="loginMsg"></p>
 </div>
 
-<div id="menu" class="hidden card">
-<h3>Activities</h3>
+<!-- MENU -->
+<div id="menu" class="card hidden">
+<h3>Sections</h3>
 <button onclick="openSection('reading')">Reading</button>
 <button onclick="openSection('listening')">Listening</button>
 <button onclick="openSection('writing')">Writing</button>
-<button id="adminPanelBtn" onclick="openAdmin()" class="hidden">Admin Panel</button>
+<button id="adminBtn" class="hidden" onclick="toggleAdmin()">Admin Panel</button>
 </div>
 
-<div id="section" class="hidden card"></div>
+<!-- SECTION CONTENT -->
+<div id="activitySection" class="card hidden"></div>
 
-<div id="adminPanel" class="hidden card">
-<h3>Admin Activity Creator</h3>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="card hidden">
+<h3>Create Activity</h3>
+
 <label>Section</label>
 <select id="sectionType">
 <option value="reading">Reading</option>
@@ -60,16 +66,19 @@ input,select,textarea{padding:8px;margin-top:5px;margin-bottom:10px;width:100%}
 <option value="writing">Writing</option>
 </select>
 
-<label>Question</label>
+<label>Instructions / Question</label>
 <textarea id="question"></textarea>
 
-<label>Type</label>
+<label>Audio URL (optional for listening)</label>
+<input id="audio">
+
+<label>Answer type</label>
 <select id="type">
-<option value="text">Text Answer</option>
+<option value="text">Text</option>
 <option value="mc">Multiple Choice</option>
 </select>
 
-<label>Options (comma separated for MC)</label>
+<label>Options (comma separated)</label>
 <input id="options">
 
 <label>Correct Answer</label>
@@ -79,10 +88,8 @@ input,select,textarea{padding:8px;margin-top:5px;margin-bottom:10px;width:100%}
 <input id="hint">
 
 <button onclick="addActivity()">Add Activity</button>
-</div>
 
-<div id="resultsPanel" class="hidden card">
-<h3>Results</h3>
+<h3>Student Results</h3>
 <div id="results"></div>
 </div>
 
@@ -92,41 +99,38 @@ input,select,textarea{padding:8px;margin-top:5px;margin-bottom:10px;width:100%}
 let currentUser=""
 let attempts={}
 
-let db=JSON.parse(localStorage.getItem("activities")||"{reading:[],listening:[],writing:[]}")
+let activities=JSON.parse(localStorage.getItem("activities")||"{reading:[],listening:[],writing:[]}")
 let results=JSON.parse(localStorage.getItem("results")||"[]")
 
 userSelect.addEventListener("change",()=>{
-if(userSelect.value==="Admin") adminPass.classList.remove("hidden")
-else adminPass.classList.add("hidden")
+if(userSelect.value==="Admin") adminPassword.classList.remove("hidden")
+else adminPassword.classList.add("hidden")
 })
 
-function login(){
+function loginUser(){
 let user=userSelect.value
-if(user==="Admin"){
-if(password.value!=="VFM31122002"){
+
+if(user==="Admin" && password.value!=="VFM31122002"){
 loginMsg.innerText="Wrong password"
 return
 }
-}
 
 currentUser=user
+
 document.getElementById("login").classList.add("hidden")
 menu.classList.remove("hidden")
 
 if(user==="Admin"){
-adminPanelBtn.classList.remove("hidden")
-resultsPanel.classList.remove("hidden")
+adminBtn.classList.remove("hidden")
 showResults()
 }
 }
 
 function openSection(section){
-sectionDiv=section
-let container=document.getElementById("section")
-container.innerHTML=""
-container.classList.remove("hidden")
+activitySection.innerHTML=""
+activitySection.classList.remove("hidden")
 
-let list=db[section]
+let list=activities[section]
 
 list.forEach((q,i)=>{
 let div=document.createElement("div")
@@ -134,29 +138,32 @@ div.className="card"
 
 let html=`<p><b>${q.question}</b></p>`
 
+if(q.audio){
+html+=`<audio controls src="${q.audio}"></audio><br><br>`
+}
+
 if(q.type==="text"){
 html+=`<input id="ans${i}">`
 }else{
-q.options.split(",").forEach(op=>{
-html+=`<label><input type="radio" name="ans${i}" value="${op}"> ${op}</label><br>`
+q.options.split(",").forEach(o=>{
+html+=`<label><input type='radio' name='ans${i}' value='${o}'> ${o}</label><br>`
 })
 }
 
-html+=`<button onclick="check('${section}',${i})">Submit</button>
+html+=`<button onclick="checkAnswer('${section}',${i})">Submit</button>
 <p id="msg${i}"></p>`
 
-
 div.innerHTML=html
-container.appendChild(div)
+activitySection.appendChild(div)
 
 attempts[i]=0
 })
 
-container.innerHTML+=`<button onclick="sendResults('${section}')">Send Results</button>`
+activitySection.innerHTML+=`<button onclick="sendResults('${section}')">Send Results</button>`
 }
 
-function check(section,i){
-let q=db[section][i]
+function checkAnswer(section,i){
+let q=activities[section][i]
 attempts[i]++
 let value
 
@@ -169,7 +176,7 @@ if(value===q.correct){
 msg.innerHTML="<span class='correct'>Correct</span>"
 }else{
 if(attempts[i]==1){
-msg.innerHTML="<span class='wrong'>Incorrect. Hint: "+q.hint+"</span>"
+msg.innerHTML=`<span class='wrong'>Incorrect. Hint: ${q.hint}</span>`
 }else{
 msg.innerHTML="<span class='wrong'>Incorrect. No more attempts.</span>"
 }
@@ -177,7 +184,7 @@ msg.innerHTML="<span class='wrong'>Incorrect. No more attempts.</span>"
 }
 
 function sendResults(section){
-let total=db[section].length
+let total=activities[section].length
 let correct=0
 
 for(let i=0;i<total;i++){
@@ -198,17 +205,18 @@ if(currentUser==="Uzziel García") message="Congratulations. Uzziel"
 }else{
 let msgs=[
 "Keep practicing, you can do it!",
-"Don't worry, improvement comes with practice!",
-"Nice try! Review and try again next time!"
+"Don't give up, improvement comes with practice!",
+"Nice try! Review the material and try again next time!"
 ]
 message=msgs[Math.floor(Math.random()*msgs.length)]
 }
 
-alert("Score: "+score+"%\n"+message)
+alert(`Score: ${score}% \n${message}`)
 }
 
-function openAdmin(){
+function toggleAdmin(){
 adminPanel.classList.toggle("hidden")
+showResults()
 }
 
 function addActivity(){
@@ -216,15 +224,17 @@ let section=sectionType.value
 
 let obj={
 question:question.value,
+audio:audio.value,
 type:type.value,
 options:options.value,
 correct:correct.value,
 hint:hint.value
 }
 
- db[section].push(obj)
- localStorage.setItem("activities",JSON.stringify(db))
- alert("Activity added")
+activities[section].push(obj)
+localStorage.setItem("activities",JSON.stringify(activities))
+
+alert("Activity added successfully")
 }
 
 function showResults(){
