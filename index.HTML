@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Course Tasks</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f6f8}
+header{background:#2c3e50;color:white;padding:15px;text-align:center}
+.container{padding:20px}
+.card{background:white;padding:20px;margin-bottom:15px;border-radius:10px}
+button{padding:10px 15px;border:none;border-radius:6px;background:#3498db;color:white;cursor:pointer}
+button:hover{background:#2980b9}
+input,select,textarea{padding:8px;margin-top:5px;margin-bottom:10px;width:100%}
+.hidden{display:none}
+.correct{color:green}
+.wrong{color:red}
+</style>
+</head>
+<body>
+<header>
+<h2>English Practice Portal</h2>
+</header>
+
+<div class="container">
+
+<div id="login" class="card">
+<h3>Select User</h3>
+<select id="userSelect">
+<option>Jonathan Rodríguez</option>
+<option>Uzziel García</option>
+<option>Admin</option>
+</select>
+
+<div id="adminPass" class="hidden">
+<label>Password</label>
+<input type="password" id="password">
+</div>
+
+<button onclick="login()">Enter</button>
+<p id="loginMsg"></p>
+</div>
+
+<div id="menu" class="hidden card">
+<h3>Activities</h3>
+<button onclick="openSection('reading')">Reading</button>
+<button onclick="openSection('listening')">Listening</button>
+<button onclick="openSection('writing')">Writing</button>
+<button id="adminPanelBtn" onclick="openAdmin()" class="hidden">Admin Panel</button>
+</div>
+
+<div id="section" class="hidden card"></div>
+
+<div id="adminPanel" class="hidden card">
+<h3>Admin Activity Creator</h3>
+<label>Section</label>
+<select id="sectionType">
+<option value="reading">Reading</option>
+<option value="listening">Listening</option>
+<option value="writing">Writing</option>
+</select>
+
+<label>Question</label>
+<textarea id="question"></textarea>
+
+<label>Type</label>
+<select id="type">
+<option value="text">Text Answer</option>
+<option value="mc">Multiple Choice</option>
+</select>
+
+<label>Options (comma separated for MC)</label>
+<input id="options">
+
+<label>Correct Answer</label>
+<input id="correct">
+
+<label>Hint</label>
+<input id="hint">
+
+<button onclick="addActivity()">Add Activity</button>
+</div>
+
+<div id="resultsPanel" class="hidden card">
+<h3>Results</h3>
+<div id="results"></div>
+</div>
+
+</div>
+
+<script>
+let currentUser=""
+let attempts={}
+
+let db=JSON.parse(localStorage.getItem("activities")||"{reading:[],listening:[],writing:[]}")
+let results=JSON.parse(localStorage.getItem("results")||"[]")
+
+userSelect.addEventListener("change",()=>{
+if(userSelect.value==="Admin") adminPass.classList.remove("hidden")
+else adminPass.classList.add("hidden")
+})
+
+function login(){
+let user=userSelect.value
+if(user==="Admin"){
+if(password.value!=="VFM31122002"){
+loginMsg.innerText="Wrong password"
+return
+}
+}
+
+currentUser=user
+login.classList.add("hidden")
+menu.classList.remove("hidden")
+
+if(user==="Admin"){
+adminPanelBtn.classList.remove("hidden")
+resultsPanel.classList.remove("hidden")
+showResults()
+}
+}
+
+function openSection(section){
+sectionDiv=section
+let container=document.getElementById("section")
+container.innerHTML=""
+container.classList.remove("hidden")
+
+let list=db[section]
+
+list.forEach((q,i)=>{
+let div=document.createElement("div")
+div.className="card"
+
+let html=`<p><b>${q.question}</b></p>`
+
+if(q.type==="text"){
+html+=`<input id="ans${i}">`
+}else{
+q.options.split(",").forEach(op=>{
+html+=`<label><input type="radio" name="ans${i}" value="${op}"> ${op}</label><br>`
+})
+}
+
+html+=`<button onclick="check('${section}',${i})">Submit</button>
+<p id="msg${i}"></p>`
+
+
+div.innerHTML=html
+container.appendChild(div)
+
+attempts[i]=0
+})
+
+container.innerHTML+=`<button onclick="sendResults('${section}')">Send Results</button>`
+}
+
+function check(section,i){
+let q=db[section][i]
+attempts[i]++
+let value
+
+if(q.type==="text") value=document.getElementById(`ans${i}`).value
+else value=document.querySelector(`input[name='ans${i}']:checked`)?.value
+
+let msg=document.getElementById(`msg${i}`)
+
+if(value===q.correct){
+msg.innerHTML="<span class='correct'>Correct</span>"
+}else{
+if(attempts[i]==1){
+msg.innerHTML="<span class='wrong'>Incorrect. Hint: "+q.hint+"</span>"
+}else{
+msg.innerHTML="<span class='wrong'>Incorrect. No more attempts.</span>"
+}
+}
+}
+
+function sendResults(section){
+let total=db[section].length
+let correct=0
+
+for(let i=0;i<total;i++){
+let msg=document.getElementById(`msg${i}`)
+if(msg && msg.innerText.includes("Correct")) correct++
+}
+
+let score=Math.round((correct/total)*100)
+
+results.push({user:currentUser,section,score,date:new Date().toLocaleString()})
+localStorage.setItem("results",JSON.stringify(results))
+
+let message=""
+
+if(score>=70){
+if(currentUser==="Jonathan Rodríguez") message="Congratulations. Jonathan"
+if(currentUser==="Uzziel García") message="Congratulations. Uzziel"
+}else{
+let msgs=[
+"Keep practicing, you can do it!",
+"Don't worry, improvement comes with practice!",
+"Nice try! Review and try again next time!"
+]
+message=msgs[Math.floor(Math.random()*msgs.length)]
+}
+
+alert("Score: "+score+"%\n"+message)
+}
+
+function openAdmin(){
+adminPanel.classList.toggle("hidden")
+}
+
+function addActivity(){
+let section=sectionType.value
+
+let obj={
+question:question.value,
+type:type.value,
+options:options.value,
+correct:correct.value,
+hint:hint.value
+}
+
+ db[section].push(obj)
+ localStorage.setItem("activities",JSON.stringify(db))
+ alert("Activity added")
+}
+
+function showResults(){
+let container=document.getElementById("results")
+container.innerHTML=""
+
+results.forEach(r=>{
+container.innerHTML+=`<p>${r.user} | ${r.section} | ${r.score}% | ${r.date}</p>`
+})
+}
+</script>
+
+</body>
+</html>
