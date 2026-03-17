@@ -145,9 +145,18 @@ passDiv.classList.add("hidden")
 
 function loginUser(){
 
-let user=document.getElementById("userSelect").value
-let password=document.getElementById("password").value
-let msg=document.getElementById("loginMsg")
+const userSelect = document.getElementById("userSelect");
+const adminPassword = document.getElementById("adminPassword");
+
+userSelect.addEventListener("change", function(){
+
+if(userSelect.value === "Admin"){
+adminPassword.classList.remove("hidden")
+}else{
+adminPassword.classList.add("hidden")
+}
+
+});
 
 msg.innerText=""
 
