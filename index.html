@@ -29,22 +29,91 @@ input,textarea,select{width:100%;padding:8px;margin-top:6px;margin-bottom:12px}
 <div class="container">
 
 <!-- LOGIN -->
-<div id="login" class="card">
-<h3>Select your user</h3>
+
 <select id="userSelect">
 <option>Jonathan Rodríguez</option>
 <option>Uzziel García</option>
 <option>Admin</option>
 </select>
 
+<br><br>
+
 <div id="adminPassword" class="hidden">
 <label>Admin Password</label>
+<br>
 <input type="password" id="password">
 </div>
 
-<button onclick="loginUser()">Enter</button>
+<br>
+
+<button onclick="loginUser()">Login</button>
+
 <p id="loginMsg"></p>
 </div>
+
+
+<div id="menu" class="hidden">
+<h2>Menu</h2>
+<button id="adminBtn" class="hidden">Admin Panel</button>
+</div>
+
+
+<script>
+
+let currentUser=""
+
+// show password only when Admin is selected
+const userSelect=document.getElementById("userSelect")
+const adminPassword=document.getElementById("adminPassword")
+
+userSelect.addEventListener("change",function(){
+
+if(userSelect.value==="Admin"){
+adminPassword.classList.remove("hidden")
+}else{
+adminPassword.classList.add("hidden")
+}
+
+})
+
+
+function loginUser(){
+
+let user=document.getElementById("userSelect").value
+let password=document.getElementById("password").value
+let msg=document.getElementById("loginMsg")
+
+msg.innerText=""
+
+if(user==="Admin"){
+
+if(password!=="VFM31122002"){
+msg.innerText="Wrong password"
+return
+}
+
+}
+
+currentUser=user
+
+// hide login
+
+document.getElementById("login").classList.add("hidden")
+
+// show menu
+
+document.getElementById("menu").classList.remove("hidden")
+
+// show admin button if admin
+
+if(user==="Admin"){
+let btn=document.getElementById("adminBtn")
+btn.classList.remove("hidden")
+}
+
+}
+
+</script>
 
 <!-- MENU -->
 <div id="menu" class="card hidden">
