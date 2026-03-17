@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>B2 English Course</title>
+<title>English Course Classroom</title>
 <style>
 body{font-family:Arial;margin:0;background:#eef3fb}
 header{background:#0f1f3d;color:white;padding:18px;text-align:center}
@@ -29,6 +29,8 @@ input,textarea,select{width:100%;padding:8px;margin-top:6px;margin-bottom:12px}
 <div class="container">
 
 <!-- LOGIN -->
+<div id="login">
+<h2>Login</h2>
 
 <select id="userSelect">
 <option>Jonathan Rodríguez</option>
@@ -50,70 +52,6 @@ input,textarea,select{width:100%;padding:8px;margin-top:6px;margin-bottom:12px}
 
 <p id="loginMsg"></p>
 </div>
-
-
-<div id="menu" class="hidden">
-<h2>Menu</h2>
-<button id="adminBtn" class="hidden">Admin Panel</button>
-</div>
-
-
-<script>
-
-let currentUser=""
-
-// show password only when Admin is selected
-const userSelect=document.getElementById("userSelect")
-const adminPassword=document.getElementById("adminPassword")
-
-userSelect.addEventListener("change",function(){
-
-if(userSelect.value==="Admin"){
-adminPassword.classList.remove("hidden")
-}else{
-adminPassword.classList.add("hidden")
-}
-
-})
-
-
-function loginUser(){
-
-let user=document.getElementById("userSelect").value
-let password=document.getElementById("password").value
-let msg=document.getElementById("loginMsg")
-
-msg.innerText=""
-
-if(user==="Admin"){
-
-if(password!=="VFM31122002"){
-msg.innerText="Wrong password"
-return
-}
-
-}
-
-currentUser=user
-
-// hide login
-
-document.getElementById("login").classList.add("hidden")
-
-// show menu
-
-document.getElementById("menu").classList.remove("hidden")
-
-// show admin button if admin
-
-if(user==="Admin"){
-let btn=document.getElementById("adminBtn")
-btn.classList.remove("hidden")
-}
-
-}
-
-</script>
 
 <!-- MENU -->
 <div id="menu" class="card hidden">
@@ -186,46 +124,31 @@ btn.classList.remove("hidden")
 
 </div>
 
+
 <script>
 
 let currentUser=""
-let attempts={}
 
-let activities=JSON.parse(localStorage.getItem("activities")||"{reading:[],listening:[],writing:[]}")
-let results=JSON.parse(localStorage.getItem("results")||"[]")
+// show password only when Admin is selected
+const userSelect=document.getElementById("userSelect")
+const adminPassword=document.getElementById("adminPassword")
 
-// SHOW PASSWORD FIELD
+userSelect.addEventListener("change",function(){
 
-document.getElementById("userSelect").addEventListener("change",function(){
-
-let user=this.value
-let passDiv=document.getElementById("adminPassword")
-
-if(user==="Admin"){
-passDiv.classList.remove("hidden")
-}
-else{
-passDiv.classList.add("hidden")
-}
-
-})
-
-// LOGIN
-
-function loginUser(){
-
-const userSelect = document.getElementById("userSelect");
-const adminPassword = document.getElementById("adminPassword");
-
-userSelect.addEventListener("change", function(){
-
-if(userSelect.value === "Admin"){
+if(userSelect.value==="Admin"){
 adminPassword.classList.remove("hidden")
 }else{
 adminPassword.classList.add("hidden")
 }
 
-});
+})
+
+
+function loginUser(){
+
+let user=document.getElementById("userSelect").value
+let password=document.getElementById("password").value
+let msg=document.getElementById("loginMsg")
 
 msg.innerText=""
 
@@ -240,16 +163,19 @@ return
 
 currentUser=user
 
+// hide login
+
 document.getElementById("login").classList.add("hidden")
+
+// show menu
+
 document.getElementById("menu").classList.remove("hidden")
 
-if(user==="Admin"){
+// show admin button if admin
 
+if(user==="Admin"){
 let btn=document.getElementById("adminBtn")
 btn.classList.remove("hidden")
-
-showAdminResults()
-
 }
 
 }
@@ -257,6 +183,7 @@ showAdminResults()
 function logout(){
 location.reload()
 }
+
 
 // OPEN SECTION
 
@@ -496,22 +423,6 @@ html="<p>No results yet.</p>"
 
 div.innerHTML=html
 
-}
-
-// show password only when Admin is selected
-const userSelect = document.getElementById("userSelect");
-const passwordField = document.getElementById("passwordField");
-
-if(userSelect && passwordField){
- userSelect.addEventListener("change", function(){
-  const selected = userSelect.value.toLowerCase();
-
-  if(selected === "admin"){
-   passwordField.style.display = "block";
-  }else{
-   passwordField.style.display = "none";
-  }
- });
 }
 
 </script>
